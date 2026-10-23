@@ -1,6 +1,31 @@
 // 作品清單：新增作品只要在這裡加一筆
 // tags 會自動變成上方的篩選按鈕；demo / repo 沒有就留空字串
+// demoLabel 可自訂 demo 按鈕文字（預設「▶ 玩玩看」）
 const PROJECTS = [
+  {
+    title: "SLAB·LAB 牌局研究室",
+    icon: "♠️",
+    date: "2026-10",
+    desc: "自己寫的德州撲克 GTO 解算平台：Rust 引擎跑 CFR 演算法，CUDA GPU 加速，瀏覽器上看 13×13 策略矩陣。",
+    tags: ["撲克", "工具"],
+    tech: ["Rust", "CUDA", "JavaScript"],
+    demo: "works/slab-lab/",
+    demoLabel: "▶ 看簡報",
+    repo: "",
+    featured: true,
+  },
+  {
+    title: "線上撲克 GTO 策略助手",
+    icon: "🃏",
+    date: "2026-06",
+    desc: "打線上撲克時自動截圖、用 YOLO 辨識手牌和公牌，丟給 TexasSolver 算 GTO 策略，再用 HUD 浮窗即時顯示建議。",
+    tags: ["撲克", "AI"],
+    tech: ["Python", "YOLO", "TexasSolver", "React"],
+    demo: "works/poker-advisor/",
+    demoLabel: "▶ 看簡報",
+    repo: "",
+    featured: true,
+  },
   {
     title: "AI 面試官",
     icon: "🎓",

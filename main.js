@@ -14,7 +14,7 @@ function renderCards(tag) {
       <p class="desc">${p.desc}</p>
       <div class="tech">${p.tech.map(t => `<span>${t}</span>`).join("")}</div>
       <div class="links">
-        ${p.demo ? `<a class="primary" href="${p.demo}" target="_blank" rel="noopener">▶ 玩玩看</a>` : ""}
+        ${p.demo ? `<a class="primary" href="${p.demo}" target="_blank" rel="noopener">${p.demoLabel || "▶ 玩玩看"}</a>` : ""}
         ${p.repo ? `<a href="${p.repo}" target="_blank" rel="noopener">&lt;/&gt; 原始碼</a>` : ""}
       </div>
     </article>`).join("");
