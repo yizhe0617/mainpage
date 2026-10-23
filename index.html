@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yizhe.dev</title>
+  <meta name="description" content="洪苡哲的作品集：做過的東西都放在這裡。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="logo" href="#">~/yizhe<span class="blink">_</span></a>
+    <nav>
+      <a href="#projects">作品</a>
+      <a href="#timeline">歷程</a>
+      <a href="https://github.com/yizhe0617" target="_blank" rel="noopener">GitHub</a>
+      <button id="theme-toggle" class="icon-btn" aria-label="切換深淺色">🌙</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="terminal">
+        <div class="terminal-bar"><i></i><i></i><i></i><span>zsh — yizhe@home</span></div>
+        <div class="terminal-body">
+          <p><span class="prompt">$</span> whoami</p>
+          <p class="out">洪苡哲 · 喜歡做些有的沒的小東西</p>
+          <p><span class="prompt">$</span> ls ./projects | wc -l</p>
+          <p class="out" id="count">0</p>
+          <p><span class="prompt">$</span> <span id="typed"></span><span class="cursor">▋</span></p>
+        </div>
+      </div>
+      <h1>Hi，我是 <span class="glow">苡哲</span> 👋</h1>
+      <p class="sub">這裡收著我做過的作品：AI 小工具、網頁、還有一些課堂作業。<br>給朋友逛逛，也給未來的自己回頭看。</p>
+    </section>
+
+    <section id="projects">
+      <h2><span class="hash">#</span> 作品</h2>
+      <div class="filters" id="filters"></div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <section id="timeline">
+      <h2><span class="hash">#</span> 歷程</h2>
+      <ol class="timeline" id="timeline-list"></ol>
+    </section>
+  </main>
+
+  <footer>
+    <p>made with ☕ &amp; too many tabs · <a href="https://github.com/yizhe0617" target="_blank" rel="noopener">@yizhe0617</a></p>
+  </footer>
+
+  <script src="projects.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
