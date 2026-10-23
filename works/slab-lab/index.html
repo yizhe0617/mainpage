@@ -3,998 +3,275 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SLAB·LAB 牌局研究室 — 功能簡報</title>
+<title>SLAB · 牌局研究室</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;600&family=Bricolage+Grotesque:wght@700;800&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --felt:    #0d2b1f;
-    --felt2:   #0a2318;
-    --brass:   #c9963a;
-    --brass2:  #e8b84b;
-    --cream:   #f0e8d0;
-    --dim:     #7a9485;
-    --red:     #c0392b;
-    --fold:    #46555f;
-    --check:   #2f9e8f;
-    --call:    #57b06a;
-    --bet:     #d99a3a;
-    --raise:   #d96b3a;
-    --allin:   #c64a44;
-    --card-bg: #f8f3e8;
-    --border:  rgba(201,150,58,0.25);
-    --glow:    rgba(201,150,58,0.15);
-  }
-
-  html, body {
-    width: 100%; height: 100%;
-    overflow: hidden;
-    background: var(--felt2);
-    font-family: 'Noto Sans TC', sans-serif;
-    color: var(--cream);
-  }
-
-  /* ── Presentation Shell ── */
-  .pres {
-    width: 100%; height: 100%;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .slide {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 80px;
-    opacity: 0;
-    transform: translateX(60px);
-    transition: opacity .5s ease, transform .5s ease;
-    pointer-events: none;
-  }
-  .slide.active {
-    opacity: 1;
-    transform: translateX(0);
-    pointer-events: all;
-  }
-  .slide.exit {
-    opacity: 0;
-    transform: translateX(-60px);
-  }
-
-  /* ── Felt texture overlay ── */
-  .pres::before {
-    content: '';
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(13,43,31,0) 0%, rgba(5,15,10,0.6) 100%),
-      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px),
-      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.02) 2px, rgba(0,0,0,.02) 4px);
-    pointer-events: none;
-    z-index: 10;
-  }
-
-  /* ── Nav ── */
-  .nav {
-    position: fixed;
-    bottom: 36px; left: 50%;
-    transform: translateX(-50%);
-    display: flex; align-items: center; gap: 16px;
-    z-index: 100;
-    background: rgba(10,35,24,0.85);
-    border: 1px solid var(--border);
-    border-radius: 50px;
-    padding: 10px 24px;
-    backdrop-filter: blur(12px);
-  }
-  .nav button {
-    background: none; border: none; cursor: pointer;
-    color: var(--brass); font-size: 20px;
-    padding: 4px 8px;
-    border-radius: 8px;
-    transition: background .2s, transform .15s;
-  }
-  .nav button:hover { background: var(--glow); transform: scale(1.15); }
-  .nav button:disabled { opacity: 0.3; cursor: default; transform: none; }
-
-  .dots { display: flex; gap: 8px; align-items: center; }
-  .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--dim); cursor: pointer;
-    transition: background .3s, transform .3s;
-  }
-  .dot.active { background: var(--brass2); transform: scale(1.4); }
-
-  .slide-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: var(--dim);
-    min-width: 40px;
-    text-align: center;
-  }
-
-  /* ── Typography ── */
-  .brand {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: clamp(48px, 8vw, 96px);
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -2px;
-    color: var(--brass2);
-    text-shadow: 0 0 60px rgba(232,184,75,0.4);
-  }
-  .brand .dot-sep { color: var(--felt2); -webkit-text-stroke: 1px var(--brass); }
-
-  .slide-title {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: clamp(28px, 4vw, 52px);
-    font-weight: 800;
-    color: var(--brass2);
-    margin-bottom: 8px;
-    text-align: center;
-  }
-  .slide-sub {
-    font-size: 14px;
-    color: var(--dim);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 40px;
-    text-align: center;
-  }
-  .slide-body {
-    font-size: clamp(14px, 1.6vw, 18px);
-    line-height: 1.9;
-    color: rgba(240,232,208,0.85);
-    max-width: 760px;
-    text-align: center;
-  }
-
-  /* ── Suit decoration ── */
-  .suits-deco {
-    display: flex; gap: 24px;
-    font-size: 40px;
-    margin-bottom: 32px;
-    animation: float 3s ease-in-out infinite;
-  }
-  .suit-s { color: #e8eaed; }
-  .suit-h { color: #e74c3c; }
-  .suit-d { color: #e74c3c; }
-  .suit-c { color: #e8eaed; }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-
-  /* ── Cards ── */
-  .card-row {
-    display: flex; gap: 12px;
-    margin: 24px 0;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .play-card {
-    width: 56px; height: 80px;
-    background: var(--card-bg);
-    border-radius: 8px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 700;
-    box-shadow: 0 4px 16px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.2);
-    transition: transform .3s;
-    cursor: default;
-  }
-  .play-card:hover { transform: translateY(-6px) rotate(-2deg); }
-  .play-card.red { color: #c0392b; }
-  .play-card.black { color: #1a1a2e; }
-  .play-card .suit { font-size: 14px; }
-
-  /* ── Feature grid ── */
-  .feat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    width: 100%;
-    max-width: 900px;
-    margin-top: 32px;
-  }
-  .feat-card {
-    background: rgba(13,43,31,0.7);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px 20px;
-    text-align: center;
-    backdrop-filter: blur(8px);
-    transition: border-color .3s, box-shadow .3s, transform .3s;
-  }
-  .feat-card:hover {
-    border-color: var(--brass);
-    box-shadow: 0 0 24px var(--glow);
-    transform: translateY(-4px);
-  }
-  .feat-icon { font-size: 32px; margin-bottom: 12px; }
-  .feat-title {
-    font-size: 14px; font-weight: 700;
-    color: var(--brass2);
-    margin-bottom: 6px;
-    letter-spacing: 1px;
-  }
-  .feat-desc { font-size: 13px; color: var(--dim); line-height: 1.6; }
-
-  /* ── Matrix mockup ── */
-  .matrix-mock {
-    display: grid;
-    grid-template-columns: repeat(13, 1fr);
-    gap: 2px;
-    max-width: 520px;
-    width: 100%;
-    margin: 24px auto;
-  }
-  .mcell-mock {
-    aspect-ratio: 1;
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform .2s;
-  }
-  .mcell-mock:hover { transform: scale(1.15); z-index: 5; }
-  .mcell-label {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 6px; font-weight: 700;
-    color: rgba(255,255,255,0.7);
-    z-index: 2;
-  }
-
-  /* ── Action bar mockup ── */
-  .action-bar {
-    display: flex; gap: 8px;
-    margin: 20px 0;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .action-chip {
-    padding: 8px 20px;
-    border-radius: 30px;
-    font-size: 13px; font-weight: 700;
-    border: 1px solid transparent;
-    cursor: default;
-    letter-spacing: 0.5px;
-  }
-
-  /* ── Horizontal layout slide ── */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    width: 100%;
-    max-width: 900px;
-    align-items: start;
-  }
-  .col-block {
-    background: rgba(13,43,31,0.6);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px;
-  }
-  .col-block h3 {
-    color: var(--brass2);
-    font-size: 16px;
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    letter-spacing: 1px;
-  }
-  .col-block ul { list-style: none; }
-  .col-block ul li {
-    padding: 6px 0;
-    font-size: 14px;
-    color: rgba(240,232,208,0.8);
-    display: flex; align-items: flex-start; gap: 8px;
-  }
-  .col-block ul li::before { content: '◆'; color: var(--brass); font-size: 8px; margin-top: 5px; flex-shrink: 0; }
-
-  /* ── Tree mockup ── */
-  .tree-mock {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    background: rgba(5,15,10,0.8);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: left;
-    min-width: 260px;
-    line-height: 2;
-  }
-  .tree-root { color: var(--brass2); font-weight: 700; }
-  .tree-node { color: var(--call); }
-  .tree-node.fold { color: var(--fold); }
-  .tree-node.bet { color: var(--bet); }
-  .tree-node.raise { color: var(--raise); }
-  .tree-node.chance { color: var(--brass); }
-  .tree-indent { padding-left: 20px; }
-
-  /* ── Lock section ── */
-  .lock-visual {
-    background: rgba(5,15,10,0.8);
-    border: 1px solid rgba(201,150,58,0.4);
-    border-radius: 16px;
-    padding: 28px 32px;
-    max-width: 500px;
-    width: 100%;
-  }
-  .lock-slider-row {
-    display: flex; align-items: center; gap: 12px;
-    margin: 10px 0;
-  }
-  .lock-label { width: 80px; font-size: 13px; color: var(--dim); }
-  .lock-bar-track {
-    flex: 1; height: 10px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .lock-bar-fill { height: 100%; border-radius: 10px; }
-  .lock-pct { width: 36px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: var(--cream); }
-
-  /* ── GPU badge ── */
-  .gpu-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, #1a1a3e, #2d1b69);
-    border: 1px solid rgba(130,80,255,0.4);
-    border-radius: 30px;
-    padding: 10px 24px;
-    font-size: 14px; font-weight: 700;
-    color: #c4a8ff;
-    margin: 16px;
-  }
-
-  /* ── Cover slide specific ── */
-  #slide-0 {
-    background: radial-gradient(ellipse 100% 100% at 50% 100%, rgba(201,150,58,0.08) 0%, transparent 60%);
-  }
-  .cover-tagline {
-    font-size: clamp(14px, 2vw, 20px);
-    color: var(--dim);
-    margin-top: 16px;
-    letter-spacing: 2px;
-  }
-  .cover-badge {
-    display: inline-flex; gap: 12px;
-    margin-top: 40px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .badge {
-    padding: 6px 18px;
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    font-size: 12px;
-    color: var(--dim);
-    letter-spacing: 1px;
-  }
-  .badge.gold { border-color: var(--brass); color: var(--brass2); }
-
-  /* ── Preflop chart mockup ── */
-  .pf-mock {
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    gap: 3px;
-    max-width: 360px;
-    width: 100%;
-    margin: 20px auto;
-  }
-  .pf-seat {
-    aspect-ratio: 1;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: transform .2s;
-  }
-  .pf-seat:hover { transform: scale(1.2); }
-
-  /* ── Progress bar ── */
-  .prog-wrap {
-    width: 100%; max-width: 500px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 20px;
-    overflow: hidden;
-    height: 14px;
-    margin: 20px 0;
-    border: 1px solid var(--border);
-  }
-  .prog-fill {
-    height: 100%;
-    border-radius: 20px;
-    background: linear-gradient(90deg, var(--call), var(--brass2));
-    position: relative;
-    overflow: hidden;
-    animation: progAnim 2s ease-in-out infinite alternate;
-  }
-  @keyframes progAnim {
-    from { width: 35%; }
-    to { width: 88%; }
-  }
-  .prog-fill::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
-    animation: shimmer 1.5s infinite;
-  }
-  @keyframes shimmer {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(100%); }
-  }
-
-  /* ── Comparison table ── */
-  .cmp-table {
-    width: 100%; max-width: 800px;
-    border-collapse: collapse;
-    font-size: 14px;
-    margin-top: 24px;
-  }
-  .cmp-table th {
-    background: rgba(201,150,58,0.1);
-    border-bottom: 2px solid var(--brass);
-    padding: 12px 16px;
-    text-align: left;
-    color: var(--brass2);
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .cmp-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: rgba(240,232,208,0.8);
-    vertical-align: top;
-  }
-  .cmp-table tr:hover td { background: rgba(201,150,58,0.04); }
-  .tag-yes { color: var(--call); font-weight: 700; }
-  .tag-no  { color: var(--fold); }
-  .tag-warn { color: var(--bet); }
-
-  /* ── Keyboard hint ── */
-  .key-hint {
-    position: fixed;
-    top: 24px; right: 32px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--dim);
-    z-index: 100;
-    display: flex; gap: 12px;
-  }
-  .key { padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px; }
-
-  /* ── Quote box ── */
-  .quote-box {
-    border-left: 3px solid var(--brass);
-    padding: 16px 24px;
-    background: rgba(201,150,58,0.05);
-    border-radius: 0 12px 12px 0;
-    max-width: 700px;
-    width: 100%;
-    margin: 24px 0;
-    text-align: left;
-    font-size: 15px;
-    line-height: 1.8;
-    color: rgba(240,232,208,0.85);
-    font-style: italic;
-  }
-
-  /* ── Suit bg decoration ── */
-  .bg-suit {
-    position: fixed;
-    font-size: 320px;
-    opacity: 0.015;
-    pointer-events: none;
-    z-index: 0;
-    user-select: none;
-  }
-
-  /* Responsive */
-  @media (max-width: 700px) {
-    .slide { padding: 40px 24px; }
-    .two-col { grid-template-columns: 1fr; }
-    .feat-grid { grid-template-columns: 1fr 1fr; }
-  }
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="key-hint">
-  <span class="key">← →</span>
-  <span class="key">Space</span>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">♠</span>
+    <span class="brand-name">SLAB<span class="brand-dot">·</span>LAB</span>
+    <span class="brand-sub">牌局研究室</span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="postflop" role="tab" id="tabbtn-postflop"
+            aria-selected="true" aria-controls="tab-postflop">翻後解算 Postflop</button>
+    <button class="tab" data-tab="preflop" role="tab" id="tabbtn-preflop"
+            aria-selected="false" aria-controls="tab-preflop">翻前圖表 Preflop</button>
+  </nav>
+  <div class="engine-status" id="engineStatus">
+    <span class="dot idle" id="engineDot"></span>
+    <span id="engineText">引擎待命</span>
+  </div>
+</header>
+
+<!-- ════════════════ POSTFLOP ════════════════ -->
+<main class="layout" id="tab-postflop" role="tabpanel" aria-labelledby="tabbtn-postflop">
+
+  <!-- ── 左欄:Spot 設定 ───────────────────── -->
+  <aside class="rail rail-left" id="spotRail">
+    <h2 class="rail-title">牌局設定 <span class="en">SPOT</span></h2>
+
+    <section class="panel">
+      <h3 class="panel-label">翻前行動 <span class="en">PREFLOP</span>
+        <button class="btn-ghost sm" id="btnPreReset" style="float:right">↺ 重新開始</button>
+      </h3>
+      <div class="table-felt" id="seatPicker">
+        <div class="felt-oval"></div>
+        <!-- seats injected by JS(顯示各位狀態:輪到/棄牌/加注/跟注) -->
+      </div>
+      <div class="pre-quick">
+        <button class="chip" data-quick="btnbb">BTN vs BB 單加注</button>
+        <button class="chip" data-quick="cobb">CO vs BB 單加注</button>
+        <button class="chip" data-quick="sbbb">SB vs BB 單加注</button>
+      </div>
+      <!-- 行動按鈕在中央卡片列下方(#preCardActions);此處只留推導結果 -->
+      <div class="seat-derived" id="seatDerived">UTG 開始行動;或點中央位置卡片直選(前面位置自動棄牌)</div>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-label">範圍 <span class="en">RANGES</span></h3>
+      <label class="field-label" id="oopRangeLabel">OOP 範圍</label>
+      <textarea id="oopRange" rows="3" spellcheck="false">66-22,A8s-A2s,K9s-K5s,Q9s-Q6s,J9s-J7s,T9s-T7s,98s-96s,87s-85s,76s-74s,65s,54s,ATo-A7o,KJo-K9o,QTo-Q9o,JTo-J9o,T9o,98o</textarea>
+      <label class="field-label" id="ipRangeLabel">IP 範圍</label>
+      <textarea id="ipRange" rows="3" spellcheck="false">22+,A2s+,K5s+,Q7s+,J7s+,T7s+,96s+,86s+,75s+,64s+,54s,A7o+,K9o+,Q9o+,J9o+,T8o+,98o</textarea>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-label">公共牌 <span class="en">BOARD</span></h3>
+      <div class="board-slots" id="boardSlots"></div>
+      <div class="card-grid" id="boardPicker"></div>
+      <div class="hint">點 3 張=翻牌、4=轉牌、5=河牌起始;再點一次取消</div>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-label">籌碼 <span class="en">STAKES</span></h3>
+      <div class="field-row">
+        <label>有效碼深(bb)<input type="number" id="depthBB" value="100" min="5" step="5"></label>
+      </div>
+      <div class="bb-readout" id="bbReadout">底池 — bb · 有效後手 — bb(由翻前行動推算)</div>
+      <details class="adv">
+        <summary>手動覆寫(籌碼單位 = 0.5bb)</summary>
+        <div class="field-row">
+          <label>底池 <input type="number" id="pot" value="11" min="1"></label>
+          <label>有效後手 <input type="number" id="stack" value="195" min="1"></label>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-label">下注樹 <span class="en">BET TREE</span></h3>
+      <label class="field-label">下注尺寸(各街/雙方)</label>
+      <input type="text" id="betSizes" value="33%,75%" spellcheck="false">
+      <div class="chip-row" data-target="betSizes">
+        <button class="chip">25%</button><button class="chip">33%</button><button class="chip">50%</button>
+        <button class="chip">75%</button><button class="chip">125%</button><button class="chip">a</button>
+      </div>
+      <label class="field-label">加注尺寸</label>
+      <input type="text" id="raiseSizes" value="2.5x" spellcheck="false">
+      <label class="field-label">轉牌 donk(OOP 領出)</label>
+      <input type="text" id="turnDonk" value="" placeholder="留空 = 無 donk" spellcheck="false">
+      <div class="chip-row" data-target="turnDonk">
+        <button class="chip">25%</button><button class="chip">33%</button><button class="chip">50%</button>
+      </div>
+      <label class="field-label">河牌 donk</label>
+      <input type="text" id="riverDonk" value="" placeholder="留空 = 無 donk" spellcheck="false">
+      <div class="chip-row" data-target="riverDonk">
+        <button class="chip">25%</button><button class="chip">33%</button><button class="chip">50%</button>
+      </div>
+      <details class="adv">
+        <summary>進階(all-in / 合併門檻)</summary>
+        <div class="field-row">
+          <label>all-in 門檻 <input type="number" id="allinThr" value="1.5" step="0.1"></label>
+          <label>合併門檻 <input type="number" id="mergeThr" value="0.1" step="0.05"></label>
+        </div>
+      </details>
+      <label class="gpu-toggle"><input type="checkbox" id="bunchOn">
+        <span>bunching 精確去牌(其餘座位蓋牌,自動推算)</span>
+      </label>
+      <div id="bunchCfg" hidden>
+        <div class="hint" id="bunchSeats">先完成翻前行動(蓋牌者自動帶入)</div>
+        <div class="mode-chips" id="bunchTabs"></div>
+        <div class="mini-matrix" id="bunchGrid"></div>
+        <div class="hint" id="bunchCount"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-label">解算器 <span class="en">SOLVER</span></h3>
+      <div class="field-row">
+        <label>迭代 <input type="number" id="iters" value="600" min="10"></label>
+        <label title="解算停止精度:可剝削度(對手完美反制每手平均可多贏的量)降到底池的此百分比即提前停止。0.3%–1% 為業界常用;越小越準越慢。CPU 每 10 迭代檢查早停;GPU 跑滿迭代。">目標 expl%ⓘ <input type="number" id="targetExpl" value="0.3" step="0.1" min="0"></label>
+      </div>
+      <div class="hint">expl = 對手完美反制每手平均多贏的量(% 底池);達標即早停</div>
+      <label class="gpu-toggle"><input type="checkbox" id="useGpu"> <span class="gpu-chip">⚡ GPU</span> 後端(需 gpu build;含鎖定重解)</label>
+      <!-- GPU VRAM 預估(勾選/改 spot 即時更新;超過可用 VRAM 變紅警告) -->
+      <div class="hint gpu-est" id="gpuEst" hidden></div>
+      <button class="btn-solve" id="btnSolve">▶ 解算 SOLVE</button>
+      <div class="progress" id="progress" hidden>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText"></div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ── 中央:13×13 矩陣 ──────────────────── -->
+  <section class="center">
+    <!-- GTOW 卡片式翻前動作列:每位置一張卡顯示其動作;點未行動位置 = 前面自動全棄牌、
+         點已行動位置 = 回溯到該動作前改線;當前行動者選項顯示在卡列下方 -->
+    <div class="pre-cards" id="preCards"></div>
+    <div class="pre-card-actions" id="preCardActions"></div>
+    <div class="center-head">
+      <div class="view-toggle" id="viewToggle">
+        <button class="vt active" data-view="strategy">策略</button>
+        <button class="vt" data-view="ev">EV</button>
+        <button class="vt" data-view="eq">EQ</button>
+      </div>
+      <div class="actor-banner" id="actorBanner">尚未解算 — 左側設定 spot 後按「解算」</div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <!-- GTOW 式逐層動作列:每層 = 行動位置 + 全部動作(頻率),點同層其他動作直接改線 -->
+    <div class="line-strip" id="lineStrip" hidden></div>
+    <div class="matrix-wrap">
+      <div class="lockpick-bar" id="lockpickBar" hidden>
+        <span>🔒 選擇要鎖定的手(點格;未選 = 不鎖、繼續訓練)</span>
+        <button class="btn-ghost sm" id="btnLockAll">全選</button>
+        <button class="btn-ghost sm" id="btnLockNone">清除</button>
+        <span class="lock-count" id="lockPickCount"></span>
+      </div>
+      <div class="matrix" id="matrix"></div>
+      <div class="matrix-empty" id="matrixEmpty">
+        <div class="empty-mark">♦</div>
+        <p>13×13 策略矩陣會顯示在這裡</p>
+      </div>
+    </div>
+    <div class="combo-strip" id="comboStrip" hidden>
+      <h3 class="panel-label" id="comboTitle">COMBOS</h3>
+      <div class="combo-rows" id="comboRows"></div>
+    </div>
+  </section>
+
+  <!-- ── 右欄:節點導覽 ────────────────────── -->
+  <aside class="rail rail-right">
+    <h2 class="rail-title">行動樹 <span class="en">GAME TREE</span></h2>
+
+    <section class="panel">
+      <h3 class="panel-label">公共牌面</h3>
+      <div class="board-display" id="boardDisplay"><span class="hint">—</span></div>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-label">賽局樹 <span class="en">TREE</span></h3>
+      <div class="tree-view" id="treeView"><span class="hint">解算後可展開瀏覽</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="node-head">
+        <h3 class="panel-label" id="nodeWho">當前節點</h3>
+        <span class="lock-badge" id="lockBadge" hidden>🔒 已鎖定</span>
+      </div>
+      <div class="action-list" id="actionList"><span class="hint">—</span></div>
+      <div class="runout" id="runoutPicker" hidden>
+        <h3 class="panel-label" id="runoutTitle">選擇發牌</h3>
+        <button class="btn-ghost" id="btnRunoutOpen">🂠 開啟中央選牌</button>
+      </div>
+    </section>
+
+    <section class="panel" id="lockSection" hidden>
+      <h3 class="panel-label">節點鎖定 <span class="en">NODE LOCK</span></h3>
+      <button class="btn-ghost" id="btnLockEdit">🔒 鎖定此節點策略…</button>
+      <button class="btn-ghost" id="btnUnlock" hidden>解除鎖定</button>
+      <div class="lock-editor" id="lockEditor" hidden>
+        <div id="lockSliders"></div>
+        <div class="lock-actions">
+          <button class="btn-ghost" id="btnLockApply">套用鎖定</button>
+          <button class="btn-ghost" id="btnLockCancel">取消</button>
+        </div>
+        <div class="hint">調整各動作總頻率;逐手結構按比例保留後重新正規化</div>
+      </div>
+      <div class="resolve-row" id="resolveRow" hidden>
+        <span id="lockCount" class="lock-count"></span>
+        <button class="btn-solve small" id="btnResolve">↻ 以鎖定重解</button>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<!-- ════════════════ PREFLOP ════════════════ -->
+<main class="layout preflop-layout" id="tab-preflop" role="tabpanel" aria-labelledby="tabbtn-preflop" hidden>
+  <aside class="rail rail-left">
+    <h2 class="rail-title">翻前位置 <span class="en">9-MAX</span></h2>
+    <section class="panel">
+      <div class="table-felt nine" id="pfSeats">
+        <div class="felt-oval"></div>
+      </div>
+      <div class="seat-derived" id="pfSeatHint">點選你的位置</div>
+    </section>
+    <section class="panel">
+      <h3 class="panel-label">情境 <span class="en">SPOT</span></h3>
+      <div class="mode-chips" id="pfModes"></div>
+      <div class="node-chips" id="pfNodes"></div>
+    </section>
+    <section class="panel">
+      <h3 class="panel-label">手牌查詢</h3>
+      <input type="text" id="pfQuery" placeholder="例:AKo / T9s / 77" spellcheck="false">
+      <div class="pf-answer" id="pfAnswer"></div>
+    </section>
+    <section class="panel meta" id="pfMeta"></section>
+  </aside>
+
+  <section class="center">
+    <div class="center-head">
+      <div class="actor-banner" id="pfTitle">選位置 → 選情境</div>
+      <div class="legend" id="pfLegend"></div>
+    </div>
+    <div class="matrix-wrap">
+      <div class="matrix pf" id="pfMatrix"></div>
+      <div class="matrix-empty" id="pfEmpty">
+        <div class="empty-mark">♣</div>
+        <p>翻前 13×13 圖表會顯示在這裡</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 發牌中央彈窗(chance 節點選 runout) -->
+<div class="modal-backdrop" id="runoutModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 class="panel-label" id="runoutModalTitle">選擇發牌</h3>
+      <button class="btn-ghost sm" id="btnRunoutClose">✕</button>
+    </div>
+    <div class="card-grid big" id="runoutModalGrid"></div>
+    <div class="hint">點選一張未使用的牌(反灰 = 已在公共牌/起始牌)</div>
+  </div>
 </div>
 
-<div class="pres" id="pres">
-
-  <!-- ══ Slide 0: Cover ══ -->
-  <div class="slide active" id="slide-0">
-    <div class="bg-suit" style="right:-80px;top:-80px">♠</div>
-    <div class="suits-deco">
-      <span class="suit-s">♠</span>
-      <span class="suit-h">♥</span>
-      <span class="suit-d">♦</span>
-      <span class="suit-c">♣</span>
-    </div>
-    <div class="brand">SLAB<span class="dot-sep">·</span>LAB</div>
-    <div class="cover-tagline">牌局研究室 — GTO 解算平台</div>
-    <p class="slide-body" style="margin-top:24px">
-      一套在本地端運行的德州撲克 GTO 研究工具<br>
-      結合 <strong style="color:var(--brass2)">Rust 高效能引擎</strong> 與 <strong style="color:var(--brass2)">瀏覽器互動介面</strong><br>
-      從翻前策略到翻後解算，一站式完成
-    </p>
-    <div class="cover-badge">
-      <span class="badge gold">Rust 引擎</span>
-      <span class="badge gold">GPU 加速</span>
-      <span class="badge">CFR 演算法</span>
-      <span class="badge">13×13 矩陣</span>
-      <span class="badge">節點鎖定</span>
-      <span class="badge">Bunching 精準模式</span>
-    </div>
-  </div>
-
-  <!-- ══ Slide 1: What is GTO? ══ -->
-  <div class="slide" id="slide-1">
-    <div class="bg-suit" style="left:-60px;bottom:-100px;color:#e74c3c">♥</div>
-    <div class="slide-title">什麼是 GTO？</div>
-    <div class="slide-sub">Game Theory Optimal</div>
-    <div class="card-row">
-      <div class="play-card black"><div>A</div><div class="suit">♠</div></div>
-      <div class="play-card red"><div>K</div><div class="suit">♥</div></div>
-      <div style="display:flex;align-items:center;padding:0 8px;color:var(--dim);font-size:24px;">vs</div>
-      <div class="play-card red"><div>Q</div><div class="suit">♦</div></div>
-      <div class="play-card red"><div>J</div><div class="suit">♦</div></div>
-    </div>
-    <p class="slide-body">
-      GTO（賽局理論最優）是一種<strong style="color:var(--brass2)">無法被對手利用</strong>的撲克策略。<br><br>
-      不管對手如何出牌，你的長期期望值都不會是負值。<br>
-      它來自數學上的「<strong style="color:var(--brass2)">納什均衡</strong>」——在這個策略下，<br>
-      任何一方單方面改變策略都不會讓自己更好。<br><br>
-      <span style="color:var(--dim);font-size:14px">
-        SLAB·LAB 的目標是：快速計算任意牌局情境的 GTO 解
-      </span>
-    </p>
-    <div class="action-bar">
-      <div class="action-chip" style="background:rgba(70,85,95,0.3);border-color:var(--fold);color:var(--fold)">棄牌 0%</div>
-      <div class="action-chip" style="background:rgba(47,158,143,0.2);border-color:var(--check);color:var(--check)">過牌 35%</div>
-      <div class="action-chip" style="background:rgba(87,176,106,0.2);border-color:var(--call);color:var(--call)">下注 33% → 65%</div>
-    </div>
-  </div>
-
-  <!-- ══ Slide 2: Architecture ══ -->
-  <div class="slide" id="slide-2">
-    <div class="slide-title">系統架構</div>
-    <div class="slide-sub">自研 Rust 引擎 × 瀏覽器前端</div>
-    <div class="feat-grid" style="grid-template-columns:repeat(3,1fr);max-width:780px">
-      <div class="feat-card">
-        <div class="feat-icon">🦀</div>
-        <div class="feat-title">slab-cfr</div>
-        <div class="feat-desc">CFR 演算法核心<br>DCFR+ 策略更新<br>CPU / GPU 雙後端</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🌐</div>
-        <div class="feat-title">slab-cli</div>
-        <div class="feat-desc">stdio / JSON 介面<br>HTTP server 服務<br>常駐進程重用</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🎨</div>
-        <div class="feat-title">ui/</div>
-        <div class="feat-desc">純 Vanilla JS<br>無 build step<br>felt & brass 主題</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">⚡</div>
-        <div class="feat-title">slab-equity-cuda</div>
-        <div class="feat-desc">CUDA GPU kernel<br>河牌 CFV 加速<br>7.3× 效能提升</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🌲</div>
-        <div class="feat-title">slab-tree</div>
-        <div class="feat-desc">博弈樹建構<br>下注尺寸配置<br>動態 all-in 合併</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">📊</div>
-        <div class="feat-title">slab-eval</div>
-        <div class="feat-desc">牌力評估<br>Equity 計算<br>Bunching 精準模式</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ Slide 3: Left Rail - Spot Config ══ -->
-  <div class="slide" id="slide-3">
-    <div class="slide-title">左欄：牌局設定</div>
-    <div class="slide-sub">SPOT CONFIGURATION</div>
-    <div class="two-col">
-      <div class="col-block">
-        <h3>🃏 翻前行動建構器</h3>
-        <ul>
-          <li>六人桌圓形桌面（UTG / HJ / CO / BTN / SB / BB）</li>
-          <li>逐位選擇行動：棄牌、跛入、加注、3bet、4bet</li>
-          <li>點已行動位置可<strong style="color:var(--brass2)">回溯改線</strong></li>
-          <li>一鍵快捷：BTN/CO/SB vs BB 常見局面</li>
-          <li>自動推算 OOP/IP 和預設牌力範圍</li>
-        </ul>
-      </div>
-      <div class="col-block">
-        <h3>⚙️ 其他設定項目</h3>
-        <ul>
-          <li>OOP / IP 牌力範圍文字框（自動帶入 GTO 預設值）</li>
-          <li>公共牌選牌器：點 3/4/5 張決定解算起始街</li>
-          <li>碼深設定（BB），底池由翻前行動自動推算</li>
-          <li>下注尺寸：33%、75%、125%…可自由組合</li>
-          <li>轉牌/河牌 Donk 尺寸設定</li>
-          <li>Bunching 精準去牌（蓋牌者範圍影響牌庫分布）</li>
-        </ul>
-      </div>
-    </div>
-    <div class="quote-box" style="margin-top:20px">
-      翻前行動完成後，系統自動推算：誰是 OOP（先行動）、誰是 IP（後行動）、底池大小、雙方預設 GTO 範圍。
-    </div>
-  </div>
-
-  <!-- ══ Slide 4: 13x13 Matrix ══ -->
-  <div class="slide" id="slide-4">
-    <div class="slide-title">核心：13×13 策略矩陣</div>
-    <div class="slide-sub">169 種起手牌型的完整 GTO 策略</div>
-    <div id="matrix-demo" class="matrix-mock"></div>
-    <div class="action-bar" style="margin-top:0">
-      <span style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="width:12px;height:12px;border-radius:2px;background:var(--fold);display:inline-block"></span>棄牌</span>
-      <span style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="width:12px;height:12px;border-radius:2px;background:var(--check);display:inline-block"></span>過牌</span>
-      <span style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="width:12px;height:12px;border-radius:2px;background:var(--bet);display:inline-block"></span>下注 33%</span>
-      <span style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="width:12px;height:12px;border-radius:2px;background:var(--raise);display:inline-block"></span>下注 75%</span>
-      <span style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="width:12px;height:12px;border-radius:2px;background:var(--allin);display:inline-block"></span>全下</span>
-    </div>
-    <p class="slide-body" style="font-size:13px;margin-top:8px">
-      右上角 = 同花牌（suited）　對角線 = 對子　左下角 = 不同花（offsuit）<br>
-      點擊任一格 → 展開該牌型所有 combo 的詳細策略 / EV / EQ 數據
-    </p>
-  </div>
-
-  <!-- ══ Slide 5: View Modes ══ -->
-  <div class="slide" id="slide-5">
-    <div class="slide-title">三種矩陣檢視模式</div>
-    <div class="slide-sub">STRATEGY · EV · EQUITY</div>
-    <div class="feat-grid" style="grid-template-columns:repeat(3,1fr);max-width:780px;margin-top:16px">
-      <div class="feat-card" style="border-color:rgba(87,176,106,0.4)">
-        <div class="feat-icon">🎯</div>
-        <div class="feat-title" style="color:var(--call)">策略模式</div>
-        <div class="feat-desc" style="color:rgba(240,232,208,0.8)">
-          每格顯示<strong>彩色頻率條</strong><br>
-          各顏色代表一種行動<br>
-          顏色長度 = 行動頻率<br><br>
-          <span style="color:var(--dim)">例：AA 格 → 50% 下注 75%、30% 過牌、20% 下注 33%</span>
-        </div>
-      </div>
-      <div class="feat-card" style="border-color:rgba(217,154,58,0.4)">
-        <div class="feat-icon">💰</div>
-        <div class="feat-title" style="color:var(--bet)">EV 模式</div>
-        <div class="feat-desc" style="color:rgba(240,232,208,0.8)">
-          熱力圖顯示<strong>期望值</strong><br>
-          紅色 = 高 EV 手牌<br>
-          藍色 = 低 EV 手牌<br><br>
-          <span style="color:var(--dim)">可切換查看 OOP 或 IP 的期望值分布</span>
-        </div>
-      </div>
-      <div class="feat-card" style="border-color:rgba(47,158,143,0.4)">
-        <div class="feat-icon">📈</div>
-        <div class="feat-title" style="color:var(--check)">EQ 模式</div>
-        <div class="feat-desc" style="color:rgba(240,232,208,0.8)">
-          熱力圖顯示<strong>底池權益</strong><br>
-          對抗對手完整範圍的贏牌機率<br><br>
-          <span style="color:var(--dim)">紅色 = 強牌（高權益），藍色 = 弱牌（低權益）</span>
-        </div>
-      </div>
-    </div>
-    <div class="card-row" style="margin-top:24px">
-      <div class="play-card black"><div>A</div><div class="suit">♠</div></div>
-      <div class="play-card black"><div>A</div><div class="suit">♣</div></div>
-      <div style="display:flex;align-items:center;padding:0 12px;color:var(--dim)">→</div>
-      <div style="text-align:left">
-        <div style="font-size:13px;color:var(--call)">EQ: 82.3%</div>
-        <div style="font-size:13px;color:var(--bet)">EV: +14.2</div>
-        <div style="font-size:13px;color:var(--brass2)">下注 75%: 68%</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ Slide 6: Game Tree Navigation ══ -->
-  <div class="slide" id="slide-6">
-    <div class="slide-title">行動樹導覽</div>
-    <div class="slide-sub">GAME TREE · LINE STRIP · NODE PANEL</div>
-    <div class="two-col">
-      <div>
-        <div class="tree-mock">
-          <div class="tree-root">▾ ROOT（翻牌 T♦9♦6♥）</div>
-          <div class="tree-indent">
-            <div class="tree-node check">▾ OOP 過牌 35%</div>
-            <div class="tree-indent">
-              <div class="tree-node bet">▾ IP 下注 33% → 52%</div>
-              <div class="tree-indent">
-                <div class="tree-node fold">✕ OOP 棄牌 28%</div>
-                <div class="tree-node call">◉ OOP 跟注 45%</div>
-                <div class="tree-node raise">⇧ OOP 加注 27%</div>
-                <div class="tree-node chance">❖ 發牌（轉牌）</div>
-              </div>
-              <div class="tree-node check">✓ IP 過牌 48%</div>
-            </div>
-            <div class="tree-node bet">▸ OOP 下注 33% → 30%</div>
-            <div class="tree-node raise">▸ OOP 下注 75% → 35%</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-block">
-        <h3>📍 三層導覽系統</h3>
-        <ul>
-          <li><strong style="color:var(--brass2)">賽局樹側欄</strong>：右側可展開的樹狀結構，高亮顯示當前節點，惰性載入子節點</li>
-          <li><strong style="color:var(--brass2)">逐層動作列</strong>：矩陣上方水平顯示每一層的行動方和各動作頻率，點選可<strong>改線</strong></li>
-          <li><strong style="color:var(--brass2)">節點面板</strong>：顯示輪到誰行動，列出所有可用動作按鈕，點選進入下一層</li>
-          <li><strong style="color:var(--brass2)">Runout 選牌</strong>：到達機會節點時，彈出 52 張牌選擇轉牌或河牌</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ Slide 7: Node Lock ══ -->
-  <div class="slide" id="slide-7">
-    <div class="slide-title">進階功能：節點鎖定</div>
-    <div class="slide-sub">NODE LOCK · FORCED STRATEGY · RESOLVE</div>
-    <div class="lock-visual">
-      <div style="color:var(--brass2);font-size:15px;font-weight:700;margin-bottom:20px">🔒 鎖定此節點策略</div>
-      <div class="lock-slider-row">
-        <div class="lock-label">棄牌</div>
-        <div class="lock-bar-track"><div class="lock-bar-fill" style="width:0%;background:var(--fold)"></div></div>
-        <div class="lock-pct">0%</div>
-      </div>
-      <div class="lock-slider-row">
-        <div class="lock-label">下注 33%</div>
-        <div class="lock-bar-track"><div class="lock-bar-fill" style="width:80%;background:var(--bet)"></div></div>
-        <div class="lock-pct">80%</div>
-      </div>
-      <div class="lock-slider-row">
-        <div class="lock-label">下注 75%</div>
-        <div class="lock-bar-track"><div class="lock-bar-fill" style="width:20%;background:var(--raise)"></div></div>
-        <div class="lock-pct">20%</div>
-      </div>
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-        <div style="color:var(--dim);font-size:13px;margin-bottom:12px">已選 14 種手牌鎖定</div>
-        <div style="display:flex;gap:12px">
-          <div style="padding:8px 20px;border-radius:8px;background:rgba(201,150,58,0.15);border:1px solid var(--brass);color:var(--brass2);font-size:13px;font-weight:700;cursor:pointer">套用鎖定</div>
-          <div style="padding:8px 20px;border-radius:8px;background:rgba(87,176,106,0.1);border:1px solid var(--call);color:var(--call);font-size:13px;font-weight:700;cursor:pointer">↻ 以鎖定重解</div>
-        </div>
-      </div>
-    </div>
-    <p class="slide-body" style="font-size:14px;margin-top:24px">
-      鎖定特定節點的出牌策略後，系統在<strong style="color:var(--brass2)">維持你的鎖定不變</strong>的前提下，<br>
-      重新計算剩餘節點的納什均衡 — 研究「非均衡打法的後果」最佳工具
-    </p>
-  </div>
-
-  <!-- ══ Slide 8: Preflop Charts ══ -->
-  <div class="slide" id="slide-8">
-    <div class="slide-title">翻前圖表</div>
-    <div class="slide-sub">PREFLOP CHARTS · 9-MAX · RFI / 3BET / 4BET</div>
-    <div class="two-col">
-      <div style="text-align:center">
-        <div style="font-size:13px;color:var(--dim);margin-bottom:16px">9 人桌座位圖 — 點選位置</div>
-        <div id="pf-seats-demo" style="position:relative;width:200px;height:200px;margin:0 auto">
-          <div style="position:absolute;inset:0;border:2px solid var(--border);border-radius:50%;background:rgba(13,43,31,0.5)"></div>
-        </div>
-        <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-          <div class="action-chip" style="background:rgba(87,176,106,0.15);border-color:var(--call);color:var(--call);font-size:11px;padding:4px 12px">RFI 首先加注</div>
-          <div class="action-chip" style="background:rgba(217,154,58,0.15);border-color:var(--bet);color:var(--bet);font-size:11px;padding:4px 12px">vs RFI 跟注</div>
-          <div class="action-chip" style="background:rgba(217,107,58,0.15);border-color:var(--raise);color:var(--raise);font-size:11px;padding:4px 12px">3bet</div>
-          <div class="action-chip" style="background:rgba(198,74,68,0.15);border-color:var(--allin);color:var(--allin);font-size:11px;padding:4px 12px">4bet</div>
-        </div>
-      </div>
-      <div class="col-block">
-        <h3>📖 翻前圖表功能</h3>
-        <ul>
-          <li>預先計算好的 9 人桌 GTO 翻前策略（免解算）</li>
-          <li>選位置 → 選情境 → 即時顯示 13×13 策略圖</li>
-          <li>支援 RFI、vs 單加注跟注/3bet、vs 3bet 跟注/4bet 等情境</li>
-          <li><strong style="color:var(--brass2)">手牌查詢</strong>：輸入 AKo / T9s / 77 即時查詢建議行動</li>
-          <li>顏色直覺顯示：加注/跟注/棄牌 頻率</li>
-        </ul>
-        <div style="margin-top:16px;padding:12px;background:rgba(5,15,10,0.6);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:12px">
-          <span style="color:var(--dim)">查詢 › </span><span style="color:var(--cream)">AKo</span><br>
-          <span style="color:var(--call)">加注 2.5bb</span><span style="color:var(--dim)"> 85% · </span><span style="color:var(--fold)">棄牌</span><span style="color:var(--dim)"> 15%</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ Slide 9: GPU & Performance ══ -->
-  <div class="slide" id="slide-9">
-    <div class="slide-title">GPU 加速與效能</div>
-    <div class="slide-sub">CUDA · RTX READY · VRAM ESTIMATE</div>
-    <div class="gpu-badge">⚡ GPU 後端</div>
-    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0">
-      <div class="feat-card" style="max-width:220px;border-color:rgba(130,80,255,0.3)">
-        <div class="feat-icon">🚀</div>
-        <div class="feat-title" style="color:#c4a8ff">GPU 解算</div>
-        <div class="feat-desc">RTX 顯示卡加速 CFR<br>河牌 CFV kernel<br>自適應分塊防凍結</div>
-      </div>
-      <div class="feat-card" style="max-width:220px;border-color:rgba(130,80,255,0.3)">
-        <div class="feat-icon">📊</div>
-        <div class="feat-title" style="color:#c4a8ff">VRAM 即時預估</div>
-        <div class="feat-desc">勾選 GPU 即時顯示<br>需要多少顯示卡記憶體<br>超標自動紅字警告</div>
-      </div>
-      <div class="feat-card" style="max-width:220px;border-color:rgba(130,80,255,0.3)">
-        <div class="feat-icon">⏱️</div>
-        <div class="feat-title" style="color:#c4a8ff">效能數字</div>
-        <div class="feat-desc">ONNX 批次化<br>河牌邊界推論 7.3×<br>CPU amp 快路 14s→1s</div>
-      </div>
-    </div>
-    <div class="prog-wrap"><div class="prog-fill"></div></div>
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--dim);text-align:center">
-      ⚡ GPU &nbsp; 425 / 600 迭代 · expl <span style="color:var(--call)">0.0021</span>
-    </div>
-    <p class="slide-body" style="font-size:13px;margin-top:20px;color:var(--dim)">
-      使用 <code style="color:var(--brass2)">cargo run --release --features gpu -- serve</code> 啟用 GPU 模式<br>
-      若 VRAM 不足，改用 CPU 模式（無 VRAM 限制，速度較慢）
-    </p>
-  </div>
-
-  <!-- ══ Slide 10: Summary ══ -->
-  <div class="slide" id="slide-10">
-    <div class="bg-suit" style="right:-60px;top:-80px;color:#e74c3c">♦</div>
-    <div class="slide-title">總結</div>
-    <div class="slide-sub">SLAB·LAB 完整功能一覽</div>
-    <table class="cmp-table">
-      <thead>
-        <tr><th>功能</th><th>說明</th><th>狀態</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>翻後 CFR 解算</td><td>翻牌/轉牌/河牌起始，CPU + GPU 雙後端</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>13×13 策略矩陣</td><td>策略 / EV / EQ 三種熱力圖</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>行動樹導覽</td><td>可展開樹 + 逐層動作列 + Runout 選牌</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>節點鎖定重解</td><td>強制策略後重新求納什均衡</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>Bunching 精準模式</td><td>蓋牌者範圍影響牌庫條件化</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>翻前圖表 9-max</td><td>RFI / 3bet / 4bet 等情境即時查詢</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>GPU VRAM 預估</td><td>即時計算，超標紅字警告</td><td class="tag-yes">✓ 完整</td></tr>
-        <tr><td>多人局解算</td><td>3 人以上真 GTO 解</td><td class="tag-warn">研究中</td></tr>
-      </tbody>
-    </table>
-    <div class="suits-deco" style="margin-top:32px;font-size:28px;animation-delay:0.5s">
-      <span class="suit-s">♠</span>
-      <span class="suit-h">♥</span>
-      <span class="suit-d">♦</span>
-      <span class="suit-c">♣</span>
-    </div>
-  </div>
-
-</div><!-- /pres -->
-
-<!-- ── Navigation ── -->
-<div class="nav">
-  <button id="btnPrev" onclick="go(-1)" disabled>◀</button>
-  <div class="dots" id="dots"></div>
-  <button id="btnNext" onclick="go(1)">▶</button>
-  <div class="slide-num" id="slideNum">1 / 11</div>
-</div>
-
-<script>
-const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
-const SUITS = ['s','h','d','c'];
-
-const N = 11;
-let cur = 0;
-
-// Build dots
-const dotsEl = document.getElementById('dots');
-for (let i = 0; i < N; i++) {
-  const d = document.createElement('div');
-  d.className = 'dot' + (i === 0 ? ' active' : '');
-  d.onclick = () => goTo(i);
-  dotsEl.appendChild(d);
-}
-
-function goTo(n) {
-  const slides = document.querySelectorAll('.slide');
-  slides[cur].classList.remove('active');
-  slides[cur].classList.add('exit');
-  setTimeout(() => slides[cur].classList.remove('exit'), 500);
-  cur = Math.max(0, Math.min(N - 1, n));
-  slides[cur].classList.add('active');
-  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
-  document.getElementById('slideNum').textContent = (cur + 1) + ' / ' + N;
-  document.getElementById('btnPrev').disabled = cur === 0;
-  document.getElementById('btnNext').disabled = cur === N - 1;
-}
-
-function go(dir) { goTo(cur + dir); }
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1); }
-  if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
-});
-
-// Build 13x13 matrix mock
-const ACTIONS = [
-  {color: '#46555f', w: 0.10},
-  {color: '#2f9e8f', w: 0.25},
-  {color: '#d99a3a', w: 0.35},
-  {color: '#d96b3a', w: 0.20},
-  {color: '#c64a44', w: 0.10},
-];
-const mx = document.getElementById('matrix-demo');
-const seed = (r, c) => ((r * 13 + c) * 2654435761) >>> 0;
-for (let r = 0; r < 13; r++) {
-  for (let c = 0; c < 13; c++) {
-    const cell = document.createElement('div');
-    cell.className = 'mcell-mock';
-    const s = seed(r, c);
-    // absent if not in range
-    const absent = (r !== c) && (r < c ? (s % 7 < 2) : (s % 5 < 1));
-    if (absent) {
-      cell.style.background = 'rgba(255,255,255,0.03)';
-    } else {
-      // build colored bar
-      let x = 0;
-      const noise = (s % 100) / 100;
-      const colors = ACTIONS.map((a, i) => ({
-        color: a.color,
-        w: Math.max(0, a.w + (((seed(r*7+i, c*3+i) % 100)/100 - 0.5) * 0.3))
-      }));
-      const tot = colors.reduce((s, a) => s + a.w, 0);
-      let grad = 'linear-gradient(90deg,';
-      let pos = 0;
-      colors.forEach((a, i) => {
-        const pct = (a.w / tot) * 100;
-        grad += `${a.color} ${pos.toFixed(1)}%,${a.color} ${(pos+pct).toFixed(1)}%`;
-        if (i < colors.length-1) grad += ',';
-        pos += pct;
-      });
-      grad += ')';
-      cell.style.background = grad;
-    }
-    const lab = document.createElement('div');
-    lab.className = 'mcell-label';
-    const l = r === c ? RANKS[r]+RANKS[r] : (r < c ? RANKS[r]+RANKS[c]+'s' : RANKS[c]+RANKS[r]+'o');
-    lab.textContent = l;
-    cell.appendChild(lab);
-    mx.appendChild(cell);
-  }
-}
-
-// Build preflop seats
-const SEATS_9 = [
-  {id:'BTN', ang:90},{id:'CO', ang:30},{id:'HJ', ang:330},
-  {id:'UTG+2', ang:270},{id:'UTG+1', ang:210},{id:'UTG', ang:150},
-  {id:'SB', ang:150-60},{id:'BB', ang:90+180+60},{id:'D', ang:90}
-];
-const SEAT9 = [
-  {id:'BTN', ang:90,c:'#d99a3a'},{id:'CO', ang:30,c:'#d96b3a'},
-  {id:'HJ', ang:330,c:'#c64a44'},{id:'UTG+2', ang:270,c:'#46555f'},
-  {id:'UTG+1', ang:210,c:'#46555f'},{id:'UTG', ang:150,c:'#46555f'},
-  {id:'SB', ang:210+90,c:'#2f9e8f'},{id:'BB', ang:270+90,c:'#57b06a'},
-];
-const pfCont = document.getElementById('pf-seats-demo');
-SEAT9.forEach(s => {
-  const rad = s.ang * Math.PI / 180;
-  const btn = document.createElement('div');
-  btn.className = 'pf-seat';
-  btn.style.cssText = `
-    position:absolute;
-    left:${50 + 43 * Math.cos(rad)}%;
-    top:${50 + 43 * Math.sin(rad)}%;
-    transform:translate(-50%,-50%);
-    background:${s.c}22;
-    border-color:${s.c};
-    color:${s.c};
-    width:34px;height:34px;font-size:9px;
-  `;
-  btn.textContent = s.id;
-  pfCont.appendChild(btn);
-});
-</script>
+<script src="wasm-shim.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
