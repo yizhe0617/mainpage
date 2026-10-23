@@ -32,10 +32,6 @@ filtersEl.addEventListener("click", e => {
 filtersEl.firstElementChild.classList.add("active");
 renderCards("全部");
 
-// 歷程：舊到新
-document.getElementById("timeline-list").innerHTML = [...sorted].reverse().map(p => `
-  <li><div class="when">${p.date.replace("-", ".")}</div><div class="what">${p.icon} ${p.title}</div></li>`).join("");
-
 // 終端機：作品數字跳動 + 打字效果
 const countEl = document.getElementById("count");
 let n = 0;

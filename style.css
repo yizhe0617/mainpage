@@ -74,7 +74,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
 .hero { padding: 64px 0 48px; }
 .terminal {
   max-width: 520px; border: 1px solid var(--border); border-radius: 12px;
-  background: var(--bg-2); overflow: hidden; margin-bottom: 36px;
+  background: var(--bg-2); overflow: hidden;
   font-family: "JetBrains Mono", monospace; font-size: .9rem;
 }
 .terminal-bar {
@@ -91,12 +91,6 @@ main { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
 .cursor, .blink { animation: blink 1s steps(1) infinite; color: var(--accent); }
 @keyframes blink { 50% { opacity: 0; } }
 
-h1 { font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.25; margin-bottom: 14px; }
-.glow {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.sub { color: var(--muted); font-size: 1.05rem; }
 
 /* sections */
 section { padding: 32px 0; }
@@ -151,17 +145,6 @@ h2 { font-family: "JetBrains Mono", monospace; font-size: 1.5rem; margin-bottom:
 .links a:hover { border-color: var(--accent); color: var(--accent); }
 .links a.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 .links a.primary:hover { filter: brightness(1.1); color: var(--bg); }
-
-/* timeline */
-.timeline { list-style: none; border-left: 2px solid var(--border); margin-left: 8px; }
-.timeline li { position: relative; padding: 0 0 22px 24px; }
-.timeline li::before {
-  content: ""; position: absolute; left: -7px; top: 8px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--bg); border: 2px solid var(--accent);
-}
-.timeline .when { font-family: "JetBrains Mono", monospace; color: var(--accent); font-size: .85rem; }
-.timeline .what { font-weight: 500; }
 
 footer {
   text-align: center; color: var(--muted); font-size: .85rem;
