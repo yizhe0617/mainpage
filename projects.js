@@ -3,6 +3,18 @@
 // demoLabel 可自訂 demo 按鈕文字（預設「▶ 玩玩看」）
 const PROJECTS = [
   {
+    title: "海洋大學資工所推甄書審資料",
+    icon: "📄",
+    date: "2026-11",
+    desc: "116 學年度國立臺灣海洋大學資訊工程學系碩士班推甄的書審資料：自傳、讀書計畫和做過的專題，22 頁 PDF。",
+    tags: ["升學"],
+    tech: ["PDF"],
+    demo: "docs/ntou-csie-review.pdf",
+    demoLabel: "📄 看書審資料",
+    repo: "",
+    featured: true,
+  },
+  {
     title: "SLAB·LAB 牌局研究室",
     icon: "♠️",
     date: "2026-10",
