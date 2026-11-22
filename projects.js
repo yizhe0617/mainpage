@@ -72,7 +72,7 @@ const PROJECTS = [
     featured: true,
   },
   {
-    title: "Group 4 遊戲介紹網站",
+    title: "五專上課練習實作-遊戲介紹網站",
     icon: "🎮",
     date: "2023-12",
     desc: "跟組員一起做的遊戲介紹網站，有遊戲介紹、遊戲模式和影片介紹。",
@@ -83,7 +83,7 @@ const PROJECTS = [
     featured: false,
   },
   {
-    title: "五專上課練習實作",
+    title: "五專上課練習實作-練習網站",
     icon: "🌱",
     date: "2021-12",
     desc: "五專網頁課的作業首頁：表格、九九乘法表、DIV 排版、部落格。一切的起點 ٩(๑❛ᴗ❛๑)۶",
