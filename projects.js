@@ -83,10 +83,10 @@ const PROJECTS = [
     featured: false,
   },
   {
-    title: "我的第一個網頁",
+    title: "五專上課練習實作",
     icon: "🌱",
     date: "2021-12",
-    desc: "大一網頁課的作業首頁：表格、九九乘法表、DIV 排版、部落格。一切的起點 ٩(๑❛ᴗ❛๑)۶",
+    desc: "五專網頁課的作業首頁：表格、九九乘法表、DIV 排版、部落格。一切的起點 ٩(๑❛ᴗ❛๑)۶",
     tags: ["網頁", "作業"],
     tech: ["HTML", "CSS"],
     demo: "https://yizhe0617.github.io/s1110932044/",
