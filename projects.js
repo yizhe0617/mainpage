@@ -27,6 +27,17 @@ const PROJECTS = [
     featured: true,
   },
   {
+    title: "建築物監視器管理系統",
+    icon: "🏢",
+    date: "2026-05",
+    desc: "AI 課程專題：15 層樓的 3D 建築數位雙生，點攝影機看資訊、管理裝置；後端 FastAPI + MCP，AI 助手用 Google ADK + Gemini，還有 YOLO 人臉偵測。線上版是模擬後端的 demo。",
+    tags: ["AI", "網頁"],
+    tech: ["React", "Three.js", "FastAPI", "Google ADK", "YOLO"],
+    demo: "works/smart-building/",
+    repo: "",
+    featured: true,
+  },
+  {
     title: "線上撲克 GTO 策略助手",
     icon: "🃏",
     date: "2026-06",
